@@ -1,0 +1,13 @@
+- name: install openjdk-8-jre
+  ansible.builtin.apt:
+    name: openjdk-8-jre
+    state: latest
+
+- name: unarchive Tomcat 9
+  ansible.builtin.unarchive:
+    src: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.65/bin/apache-tomcat-9.0.65.tar.gz
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    dest: "/home/{{ user }}"
+    remote_src: yes
+    validate_certs: no

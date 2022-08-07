@@ -1,0 +1,73 @@
+- name: set timezone {{ zone }}
+  shell: timedatectl set-timezone {{ zone }}
+  register: set_timezone
+  changed_when: false
+
+# - name: set locale {{ keymap }}
+#   shell: localectl set-keymap {{ keymap }}
+#   register: set_locale
+#   changed_when: false
+
+- name: update repositories cache
+  apt: update_cache=yes
+
+- name: install various packages
+  ansible.builtin.apt:
+    pkg:
+      - unzip
+      - curl
+      - policycoreutils
+      - selinux-utils 
+      - selinux-basics
+
+- name: sshd_config PermitRootLogin yes
+  lineinfile:
+    dest:     /etc/ssh/sshd_config
+    state:    present
+    backrefs: yes
+    regexp:   '^#PermitRootLogin yes'
+    line:     'PermitRootLogin yes'
+
+- name: sshd_config PasswordAuthentication yes
+  lineinfile:
+    dest:     /etc/ssh/sshd_config
+    state:    present
+    backrefs: yes
+    regexp:   '^#PasswordAuthentication yes'
+    line:     'PasswordAuthentication yes'
+
+- name: sshd_config delete PasswordAuthentication no
+  lineinfile:
+    dest:     /etc/ssh/sshd_config
+    state:    present
+    backrefs: yes
+    regexp:   '^PasswordAuthentication no'
+    line:     ''
+
+- name: restart sshd
+  systemd: name=sshd state=restarted
+
+- name: check existance of ~/.ssh/id_rsa
+  stat:
+    path: "~{{ user }}/.ssh/id_rsa"
+  register: ssh_key
+
+- name: create SSH keys
+  shell: 
+    chdir: "/home/{{ user }}/.ssh/"
+    cmd: "ssh-keygen -f /home/{{ user }}/.ssh/id_rsa -q -N '' "
+  when: not ssh_key.stat.exists
+
+- name: append public key to authorized_keys
+  shell: 
+    chdir: "/home/{{ user }}/.ssh/"
+    cmd: cat id_rsa.pub >> authorized_keys
+  when: not ssh_key.stat.exists
+
+- name: change owner of ~/.ssh
+  ansible.builtin.file:
+    path: "/home/{{ user }}/.ssh"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    recurse: yes
+  when: not ssh_key.stat.exists

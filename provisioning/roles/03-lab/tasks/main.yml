@@ -1,0 +1,148 @@
+- name: download appd-downloader
+  shell: 
+    chdir: "/home/{{ user }}"
+    cmd: curl -Lk https://github.com/csek06/appd-binary-downloader/raw/master/cmd/appd-downloader/appd-downloader_linux -o appd-downloader
+
+- name: change mode of appd-downloader
+  ansible.builtin.file:
+    path: "/home/{{ user }}/appd-downloader"
+    mode: '0555'
+    owner: "{{ user }}"
+    group: "{{ user }}"
+
+- name: copy Cars_Sample_App.war to webapps/
+  ansible.builtin.copy:
+    src: Cars_Sample_App.war
+    dest: "/home/{{ user }}/apache-tomcat-9.0.65/webapps"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0644'
+
+- name: copy grant.sql
+  ansible.builtin.copy:
+    src: grant.sql
+    dest: "/home/{{ user }}/"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0444'
+
+- name: change root user password 
+  shell: "mariadb < /home/{{ user }}/grant.sql"
+
+- name: copy .my.cnf to /root
+  ansible.builtin.copy:
+    src: my.cnf
+    dest: /root/.my.cnf
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0444'
+
+- name: copy .my.cnf
+  ansible.builtin.copy:
+    src: my.cnf
+    dest: "/home/{{ user }}/.my.cnf"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0444'
+
+- name: copy MariaDB DDL
+  ansible.builtin.copy:
+    src: schema.sql
+    dest: "/home/{{ user }}/"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0644'
+    
+- name: load MariaDB DDL
+  shell: "mariadb -uroot -pAppDynamics < /home/{{ user }}/schema.sql"
+
+
+- name: download Java Agent zip
+  shell: "cd /home/{{ user }} && ./appd-downloader -automate -java"
+
+- name: create ~/java-agent
+  ansible.builtin.file:
+    path: "/home/{{ user }}/java-agent"
+    state: directory
+    mode: '0755'
+
+- name: extract Java Agent to ~/java-agent
+  ansible.builtin.unarchive:
+    src:  "/home/{{ user }}/AppServerAgent-1.8-22.7.0.34044.zip"
+    dest: "/home/{{ user }}/java-agent"
+
+- name: copy conf.sh
+  copy:
+    src: conf.sh
+    dest:  "/home/{{ user }}/"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0755'
+
+- name: create Java agent controller-info.xml
+  shell: 
+    chdir: "/home/{{ user }}/java-agent/conf"
+    cmd: "/home/{{ user }}/conf.sh {{ account_name }} {{ access_key }} "
+
+- name: copy setenv.sh to apache-tomcat-9.0.65/bin/
+  ansible.builtin.copy:
+    src: setenv.sh
+    dest:  "/home/{{ user }}/apache-tomcat-9.0.65/bin/"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0644'
+
+- name: replace user name in setenv.sh 
+  lineinfile:
+    path:   "/home/{{ user }}/apache-tomcat-9.0.65/bin/setenv.sh"
+    regexp: 'vagrant'
+    line: "export CATALINA_OPTS=\"$CATALINA_OPTS -javaagent:/home/{{ user }}/java-agent/javaagent.jar\""
+
+# - name: copy download_ma.exp
+#   ansible.builtin.copy:
+#     src: download_ma.exp
+#     dest: "/home/{{ user }}/download_ma.exp"
+#     owner: "{{ user }}"
+#     group: "{{ user }}"
+#     mode: '0755'
+
+# - name: download the latest Machine Agent RPM
+#   shell: |
+#     "cd ~{{ user }}
+#     expect download_ma.exp"
+
+- name: download Machine Agent
+  expect:
+    chdir: "/home/{{ user }}"
+    command: "/home/{{ user }}/appd-downloader -ma"
+    responses:
+      Which binary to download?: "3\n"
+
+- name: create ~/machine-agent
+  ansible.builtin.file:
+    path: "/home/{{ user }}/machine-agent"
+    state: directory
+    mode: '0755'
+
+- name: extract Machine Agent to ~/machine-agent
+  ansible.builtin.unarchive:
+    src:  "/home/{{ user }}/machineagent-bundle-64bit-linux-22.7.0.3411.zip"
+    dest: "/home/{{ user }}/machine-agent"   
+
+- name: create Machine agent controller-info.xml
+  shell: 
+    chdir: "/home/{{ user }}/machine-agent/conf"
+    cmd: "/home/{{ user }}/conf.sh {{ account_name }} {{ access_key }} "
+
+
+- name: extract load generator
+  ansible.builtin.unarchive:
+    src: load-generator.tgz
+    dest: "/home/{{ user }}/" 
+
+- name: change owner of home directory 
+  ansible.builtin.file:
+    path: "/home/{{ user }}"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    recurse: yes

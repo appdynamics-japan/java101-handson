@@ -1,0 +1,14 @@
+- name: install MariaDB Community Server
+  ansible.builtin.apt:
+    name: mariadb-server
+    state: latest
+
+- name: start MariaDB server
+  ansible.builtin.systemd:
+    name: mariadb
+    state: started
+
+- name: install python3-pymysql
+  ansible.builtin.apt:
+    pkg:
+      - python3-pymysql

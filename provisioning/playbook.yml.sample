@@ -1,0 +1,18 @@
+# provision Tomcat / MariaDB / Sample App
+- hosts: all
+  vars:
+    locale: en_US.UTF-8
+    keymap: us
+    zone:   Asia/Tokyo
+    user:   vagrant
+    # account name & access key can be found in ADMIN - License - Account on Controller
+    account_name: company1
+    access_key: 1234567890abcdef
+  become: yes
+  user: vagrant
+  roles:
+    - 00-common
+    - 01-tomcat
+    - 02-mariadb
+    - 03-lab
+    
