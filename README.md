@@ -4,7 +4,7 @@
 ## Prerequites
 
 - Ansible 2.9+
-- Vagrant
+- [Vagrant](https://www.vagrantup.com/)
 - VMware Fusion / Workstation
 - Ubuntu 22.04 LTS (w/o Vagrant/VMware)
 
