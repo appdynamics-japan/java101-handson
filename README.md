@@ -23,7 +23,7 @@ cp playbook.yml.sample playbook.yml
 ### edit playbook.yml
 
 * change ``account_name`` variable to your AppDynamics Account Name
-* change ``account_name`` variable to your AppDynamics Access Key
+* change ``access_key`` variable to your AppDynamics Access Key
 
 ### start and provision a VM 
 
@@ -48,7 +48,7 @@ cp playbook.yml.sample playbook.yml
 * ``hosts: all`` should be ``hosts: localhost`` 
 * change ``user`` variable to your Ubuntu OS username
 * change ``account_name`` variable to your AppDynamics Account Name
-* change ``account_name`` variable to your AppDynamics Access Key
+* change ``access_key`` variable to your AppDynamics Access Key
 
 ### run Ansible playbook
 
