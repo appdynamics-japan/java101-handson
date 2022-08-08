@@ -16,16 +16,21 @@ https://github.com/Appdynamics/Cars_Sample_App/tree/1.0-MAINTENANCE
 
 ```
 git clone https://github.com/appdynamics-japan/java101-lab.git
-cd java101-lab
+cd java101-lab/provisonning
+cp playbook.yml.sample playbook.yml
+```
+
+### edit playbook.yml
+
+* change ``account_name`` variable to your AppDynamics Account Name
+* change ``account_name`` variable to your AppDynamics Access Key
+
+### start and provision a VM 
+
+```
+cd ..
 vagrant up
 ```
-
-```
-vagrant provision
-```
-(will be executed on 1st 'vagrant up')
-
-
 
 
 ## Provisionning on a VM w/o Vagrant 
@@ -35,6 +40,7 @@ vagrant provision
 ```
 git clone https://github.com/appdynamics-japan/java101-lab.git
 cd java101-lab/provisioning
+cp playbook.yml.sample playbook.yml
 ```
 
 ### edit playbook.yml
